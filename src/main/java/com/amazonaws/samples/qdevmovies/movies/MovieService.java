@@ -69,4 +69,88 @@ public class MovieService {
         }
         return Optional.ofNullable(movieMap.get(id));
     }
+
+    /**
+     * Search movies by multiple criteria
+     * @param name Movie name (partial match, case-insensitive)
+     * @param id Movie ID (exact match)
+     * @param genre Movie genre (partial match, case-insensitive)
+     * @return List of movies matching the criteria
+     */
+    public List<Movie> searchMovies(String name, Long id, String genre) {
+        logger.info("Searching movies with criteria - name: {}, id: {}, genre: {}", name, id, genre);
+        
+        List<Movie> results = new ArrayList<>();
+        
+        for (Movie movie : movies) {
+            boolean matches = true;
+            
+            // Check name criteria (partial match, case-insensitive)
+            if (name != null && !name.trim().isEmpty()) {
+                if (!movie.getMovieName().toLowerCase().contains(name.trim().toLowerCase())) {
+                    matches = false;
+                }
+            }
+            
+            // Check ID criteria (exact match)
+            if (id != null && id > 0) {
+                if (movie.getId() != id.longValue()) {
+                    matches = false;
+                }
+            }
+            
+            // Check genre criteria (partial match, case-insensitive)
+            if (genre != null && !genre.trim().isEmpty()) {
+                if (!movie.getGenre().toLowerCase().contains(genre.trim().toLowerCase())) {
+                    matches = false;
+                }
+            }
+            
+            if (matches) {
+                results.add(movie);
+            }
+        }
+        
+        logger.info("Found {} movies matching search criteria", results.size());
+        return results;
+    }
+
+    /**
+     * Search movies by name only
+     * @param name Movie name (partial match, case-insensitive)
+     * @return List of movies matching the name criteria
+     */
+    public List<Movie> searchMoviesByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return searchMovies(name, null, null);
+    }
+
+    /**
+     * Search movies by genre only
+     * @param genre Movie genre (partial match, case-insensitive)
+     * @return List of movies matching the genre criteria
+     */
+    public List<Movie> searchMoviesByGenre(String genre) {
+        if (genre == null || genre.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return searchMovies(null, null, genre);
+    }
+
+    /**
+     * Validate search parameters
+     * @param name Movie name parameter
+     * @param id Movie ID parameter
+     * @param genre Movie genre parameter
+     * @return true if at least one valid parameter is provided
+     */
+    public boolean isValidSearchRequest(String name, Long id, String genre) {
+        boolean hasName = name != null && !name.trim().isEmpty();
+        boolean hasId = id != null && id > 0;
+        boolean hasGenre = genre != null && !genre.trim().isEmpty();
+        
+        return hasName || hasId || hasGenre;
+    }
 }
