@@ -3,21 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Movies This Month</title>
+    <title th:text="${pirateMode} ? 'Free Treasures This Month' : 'Free Movies This Month'">Free Movies This Month</title>
     <link rel="stylesheet" th:href="@{/css/movies.css}">
+    <style>
+        .search-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-form h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .search-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .search-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .search-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .search-message.pirate {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .back-to-all {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Free Movies This Month</h1>
-        <div class="movies-grid">
+        <h1 th:text="${pirateMode} ? 'Free Treasures This Month' : 'Free Movies This Month'">Free Movies This Month</h1>
+        
+        <!-- Search Form -->
+        <div class="search-form">
+            <h2 th:text="${pirateMode} ? 'Hunt for Treasures' : 'Search Movies'">Search Movies</h2>
+            <form action="/movies/search/form" method="get">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name" th:text="${pirateMode} ? 'Treasure Name:' : 'Movie Name:'">Movie Name:</label>
+                        <input type="text" id="name" name="name" 
+                               th:placeholder="${pirateMode} ? 'Enter treasure name...' : 'Enter movie name...'"
+                               th:value="${param.name}">
+                    </div>
+                    <div class="form-group">
+                        <label for="id" th:text="${pirateMode} ? 'Treasure ID:' : 'Movie ID:'">Movie ID:</label>
+                        <input type="number" id="id" name="id" 
+                               th:placeholder="${pirateMode} ? 'Enter treasure ID...' : 'Enter movie ID...'"
+                               th:value="${param.id}" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="genre" th:text="${pirateMode} ? 'Type of Adventure:' : 'Genre:'">Genre:</label>
+                        <input type="text" id="genre" name="genre" 
+                               th:placeholder="${pirateMode} ? 'Enter adventure type...' : 'Enter genre...'"
+                               th:value="${param.genre}">
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pirate" name="pirate" value="true" 
+                           th:checked="${pirateMode}">
+                    <label for="pirate">🏴‍☠️ Pirate Mode (Arrr!)</label>
+                </div>
+                <div class="search-buttons">
+                    <button type="submit" class="btn btn-primary" 
+                            th:text="${pirateMode} ? '🔍 Hunt for Treasures' : '🔍 Search Movies'">🔍 Search Movies</button>
+                    <a href="/movies" class="btn btn-secondary" 
+                       th:text="${pirateMode} ? '📋 Show All Treasures' : '📋 Show All Movies'">📋 Show All Movies</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Results Message -->
+        <div th:if="${searchMessage}" 
+             th:class="'search-message ' + (${pirateMode} ? 'pirate' : 'success')"
+             th:text="${searchMessage}">
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" 
+             th:class="'search-message ' + (${pirateMode} ? 'pirate' : 'error')"
+             th:text="${error}">
+        </div>
+
+        <!-- Back to All Movies Link (shown when displaying search results) -->
+        <div th:if="${isSearchResult}" class="back-to-all">
+            <a href="/movies" class="btn btn-secondary" 
+               th:text="${pirateMode} ? '← Return to All Treasures' : '← Back to All Movies'">← Back to All Movies</a>
+        </div>
+
+        <!-- Movies Grid -->
+        <div class="movies-grid" th:if="${not #lists.isEmpty(movies)}">
             <div class="movie-card" th:each="movie : ${movies}">
                 <div class="movie-icon" th:text="${movie.icon}">🎬</div>
                 <h3 th:text="${movie.movieName}">Movie Title</h3>
                 <div class="movie-details">
-                    <p class="director">Director: <span th:text="${movie.director}">Director Name</span></p>
-                    <p class="year">Year: <span th:text="${movie.year}">2023</span></p>
-                    <p class="genre">Genre: <span th:text="${movie.genre}">Drama</span></p>
-                    <p class="duration">Duration: <span th:text="${movie.duration}">120</span> minutes</p>
+                    <p class="director" th:text="${pirateMode} ? 'Captain: ' + ${movie.director} : 'Director: ' + ${movie.director}">Director: Director Name</p>
+                    <p class="year" th:text="${pirateMode} ? 'Year of Sailing: ' + ${movie.year} : 'Year: ' + ${movie.year}">Year: 2023</p>
+                    <p class="genre" th:text="${pirateMode} ? 'Type of Adventure: ' + ${movie.genre} : 'Genre: ' + ${movie.genre}">Genre: Drama</p>
+                    <p class="duration" th:text="${pirateMode} ? 'Length of Voyage: ' + ${movie.duration} + ' minutes' : 'Duration: ' + ${movie.duration} + ' minutes'">Duration: 120 minutes</p>
                 </div>
                 <div class="rating">
                     <span class="stars">
@@ -26,8 +187,15 @@
                     </span>
                     <span class="rating-score" th:text="${#numbers.formatDecimal(movie.imdbRating, 1, 1)} + '/5'">5.0/5</span>
                 </div>
-                <a th:href="@{/movies/{id}/details(id=${movie.id})}" class="details-btn">View Details</a>
+                <a th:href="@{/movies/{id}/details(id=${movie.id})}" class="details-btn" 
+                   th:text="${pirateMode} ? 'Examine Treasure' : 'View Details'">View Details</a>
             </div>
+        </div>
+
+        <!-- No Movies Found Message -->
+        <div th:if="${#lists.isEmpty(movies) and isSearchResult}" class="search-message error">
+            <p th:text="${pirateMode} ? 'No treasures found matching yer search, matey!' : 'No movies found matching your search criteria.'}">No movies found matching your search criteria.</p>
+            <p th:text="${pirateMode} ? 'Try different compass readings or return to all treasures.' : 'Try different search terms or view all movies.'}">Try different search terms or view all movies.</p>
         </div>
     </div>
 </body>
